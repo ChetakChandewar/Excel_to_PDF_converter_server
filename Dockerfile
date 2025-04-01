@@ -13,6 +13,9 @@ COPY server.py requirements.txt ./
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Ensure LibreOffice works
+RUN libreoffice --version
+
 # Expose port
 EXPOSE 8080
 

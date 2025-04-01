@@ -20,19 +20,33 @@ def convert_excel_to_pdf():
     input_path = os.path.join(UPLOAD_FOLDER, file.filename)
     file.save(input_path)
 
-    # Convert Excel to PDF using LibreOffice CLI
-    output_path = input_path.replace(".xls", ".pdf").replace(".xlsx", ".pdf")
-    subprocess.run([
-        "libreoffice",
-        "--headless",
-        "--convert-to",
-        "pdf",
-        "--outdir",
-        UPLOAD_FOLDER,
-        input_path
-    ], check=True)
+    # Ensure filenames with spaces are handled correctly
+    output_path = input_path.rsplit(".", 1)[0] + ".pdf"
+    input_path_escaped = f'"{input_path}"'  # Add quotes to prevent space issues
 
-    return send_file(output_path, as_attachment=True)
+    try:
+        # Convert Excel to PDF using LibreOffice CLI
+        result = subprocess.run([
+            "libreoffice",
+            "--headless",
+            "--convert-to",
+            "pdf",
+            "--outdir",
+            UPLOAD_FOLDER,
+            input_path_escaped
+        ], capture_output=True, text=True, check=True)
+
+        print("LibreOffice Output:", result.stdout)  # Debugging
+
+        # Ensure the output file exists
+        if not os.path.exists(output_path):
+            return {"error": "Conversion failed. Output file not found."}, 500
+
+        return send_file(output_path, as_attachment=True)
+
+    except subprocess.CalledProcessError as e:
+        print("LibreOffice Error:", e.stderr)  # Debugging
+        return {"error": "Conversion failed", "details": str(e.stderr)}, 500
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
