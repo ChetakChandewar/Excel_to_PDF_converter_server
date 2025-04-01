@@ -1,23 +1,20 @@
-# Use a lightweight Python image
-FROM python:3.9
+# Use an official Python runtime as a parent image
+FROM python:3.9-slim
 
-# Install LibreOffice CLI
-RUN apt-get update && apt-get install -y libreoffice && rm -rf /var/lib/apt/lists/*
-
-# Set the working directory
+# Set the working directory in the container
 WORKDIR /app
 
-# Copy project files
-COPY server.py requirements.txt ./
+# Install system dependencies (e.g., LibreOffice)
+RUN apt-get update && apt-get install -y libreoffice && apt-get clean
 
-# Install dependencies
+# Copy the current directory contents into the container at /app
+COPY . /app
+
+# Install the required Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Ensure LibreOffice works
-RUN libreoffice --version
-
-# Expose port
+# Expose the port the app runs on
 EXPOSE 8080
 
-# Start the Flask app
-CMD ["python", "server.py"]
+# Define the command to run the app
+CMD ["python", "app.py"]
