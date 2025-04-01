@@ -1,3 +1,5 @@
-flask
-celery
-redis
+Flask==2.0.3
+Celery==5.2.3
+psycopg2-binary==2.9.1
+redis==4.3.4
+gunicorn==20.1.0
