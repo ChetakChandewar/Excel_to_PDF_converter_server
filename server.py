@@ -17,15 +17,18 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 @celery.task(bind=True)
 def convert_excel_to_pdf(self, filename):
-    """ Convert Excel file to PDF using LibreOffice CLI """
+    """ Convert Excel file to PDF using LibreOffice CLI with memory optimization """
     input_path = os.path.join(UPLOAD_FOLDER, filename)
     output_path = input_path.replace(".xlsx", ".pdf")
 
     try:
-        subprocess.run(["libreoffice", "--headless", "--convert-to", "pdf", input_path, "--outdir", UPLOAD_FOLDER], check=True)
+        subprocess.run(["libreoffice", "--headless", "--nologo", "--nodefault", "--nofirststartwizard",
+                        "--nolockcheck", "--convert-to", "pdf", input_path, "--outdir", UPLOAD_FOLDER],
+                        check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         return {"status": "success", "pdf_path": output_path}
     except subprocess.CalledProcessError:
         return {"status": "failed", "message": "Conversion error"}
+
 
 @app.route("/convert", methods=["POST"])
 def upload_file():
