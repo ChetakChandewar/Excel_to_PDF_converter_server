@@ -1,20 +1,20 @@
-# Use an official Python runtime as a parent image
-FROM python:3.9-slim
+# Use Python base image
+FROM python:3.9
 
-# Set the working directory in the container
+# Install system dependencies
+RUN apt-get update && apt-get install -y libreoffice
+
+# Set working directory
 WORKDIR /app
 
-# Install system dependencies (e.g., LibreOffice)
-RUN apt-get update && apt-get install -y libreoffice && apt-get clean
-
-# Copy the current directory contents into the container at /app
+# Copy app files
 COPY . /app
 
-# Install the required Python dependencies
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose the port the app runs on
+# Expose the port Flask runs on
 EXPOSE 8080
 
-# Define the command to run the app
-CMD ["python", "app.py"]
+# Start both Flask app and Celery worker
+CMD ["sh", "-c", "celery -A celery_worker worker --loglevel=info & python server.py"]
